@@ -82,7 +82,6 @@ def findGobanCorners(image):
 
 
 # todo:
-# fix matrices with input
 # parametrize: output image size 
 # tidy up matrix datatypes?
 # apply sorting from findGobanCorners
@@ -106,7 +105,6 @@ def transformView(image, corners):
 
 
 # todo
-# sort intersections?
 # implement computeIntersections 
 def detectIntersections(image):
     closex = verticalClosing(image)
