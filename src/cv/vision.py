@@ -3,6 +3,8 @@ import numpy as np
 import numpy.linalg as lin 
 from matplotlib import pyplot as plt 
 
+# todo: clean up data structures
+# i think right now there are too many of them
 
 # todo: 
 # parametrize: GBkernel, SEkernel
