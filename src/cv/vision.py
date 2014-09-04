@@ -105,7 +105,6 @@ def transformView(image, corners):
 
 
 # todo
-# implement computeIntersections 
 def detectIntersections(image):
     closex = verticalClosing(image)
     closey = horizontalClosing(image)
@@ -125,6 +124,31 @@ def detectIntersections(image):
         cv2.circle(image,(x,y),6,(0,0,255),-1)
 
     return intersections
+
+# todo
+# data structures, kmeans parametrization
+def computeIntersections(intersections):
+    xs = []
+    ys = []
+    for (x,y) in intersections:
+            xs.append(x)
+            ys.append(y)  
+
+    xs = np.float32(xs)
+    ys = np.float32(ys)
+
+    retX,labelX,centerX=cv2.kmeans(xs,19, (cv2.TERM_CRITERIA_EPS, 30, 0.1), 30, 0)
+    retY,labelY,centerY=cv2.kmeans(ys,19, (cv2.TERM_CRITERIA_EPS, 30, 0.1), 30, 0)
+
+    centerX = sorted([item for sublist in centerX for item in sublist])
+    centerY = sorted([item for sublist in centerY for item in sublist])
+
+    computedIntersections = []
+    for y in centerY:
+        for x in centerX:
+           computedIntersections.append((x,y)) 
+
+    return computedIntersections 
 
 
 # todo
