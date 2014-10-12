@@ -1,7 +1,20 @@
+%matplotlib inline
+import numpy as np
+import cv2
+from matplotlib import pyplot as plt
+import inspect
+
+DEBUGPLOT = 1
+def dplt(image):
+    if not DEBUGPLOT: return
+    print inspect.stack()[1]
+    plt.imshow(image, cmap = 'gray', interpolation = 'bicubic')
+    plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+    plt.show()
+
 import cv2
 import numpy as np  
 import numpy.linalg as lin 
-from matplotlib import pyplot as plt 
 
 # todo: clean up data structures
 # i think right now there are too many of them
@@ -9,7 +22,8 @@ from matplotlib import pyplot as plt
 # todo: 
 # parametrize: GBkernel, SEkernel
 def preprocess(image):
-    blur = cv2.GaussianBlur(image,(5,5),0)
+    gbkernel = 9
+    blur = cv2.GaussianBlur(image,(gbkernel,gbkernel),0)
     gray = cv2.cvtColor(blur,cv2.COLOR_BGR2GRAY)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(11,11))
@@ -17,8 +31,8 @@ def preprocess(image):
     #div = np.float32(gray)/(close)
     res = np.uint8(cv2.normalize(gray,gray,0,255,cv2.NORM_MINMAX))
 
-    return res 
-
+    dplt(res)
+    return res  
 
 # todo:
 # what needs to be parametrized here?
@@ -27,22 +41,21 @@ def preprocess(image):
 def findGobanCorners(image):
     mask = np.zeros((image.shape),np.uint8)
     thresh = cv2.adaptiveThreshold(image,255,0,1,19,2)
+    dplt(thresh) # threshold
+
     contour,hier = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    max_area = 0
-    best_cnt = None
-    for cnt in contour:
-        area = cv2.contourArea(cnt)
-        if area > 1000:
-            if area > max_area:
-                max_area = area
-                best_cnt = cnt
+
+    best_cnt = max(contour, key=lambda c: cv2.contourArea(c))
 
     cv2.drawContours(mask,[best_cnt],0,255,-1)
-    cv2.drawContours(mask,[best_cnt],0,0,2)
+    #cv2.drawContours(mask,[best_cnt],0,0,2)q
+    dplt(mask) # contours
     res = cv2.bitwise_and(image,mask)
 
-    edges = cv2.Canny(mask, 50, 100)
-    lines = cv2.HoughLines(edges, 1, np.pi/(360), 200)[0]
+    edges = cv2.Canny(res, 50, 100)
+    dplt(edges) # canny
+    lines = cv2.HoughLines(edges, 1, np.pi/(360), 200)
+    lines = lines[0]
     m,n = mask.shape
 
     Z = np.float32(lines)
@@ -230,4 +243,11 @@ def scanGoban(image, intersections):
             cv2.circle(image,(i[0],i[1]),10,(255,0,0),-1) 
             cv2.circle(image,(i[0],i[1]),13,(0,0,0),3) 
 
-    return image 
+    return image
+
+def test():
+    img = cv2.imread('gob1.jpg',1)
+    pp = preprocess(img)
+    corners = findGobanCorners(pp)
+    tv = transformView(img, corners)
+    dplt(tv)
